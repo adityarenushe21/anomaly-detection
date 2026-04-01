@@ -15,9 +15,9 @@ def detect_anomaly(X):
     threshold = errors.mean() + 1 * errors.std()
     anomalies = errors > threshold
 
-    # 🔥 Direction detection
+    # 🔥 NEW: Direction detection
     labels = []
-    epsilon = 0.05  # since normalized data
+    epsilon = 0.05  # since normalized data (0–1)
 
     for i in range(len(errors)):
         if anomalies[i]:
@@ -32,4 +32,5 @@ def detect_anomaly(X):
         else:
             labels.append("Normal")
 
+    # 🔥 IMPORTANT: return 3 values
     return errors, anomalies, labels
