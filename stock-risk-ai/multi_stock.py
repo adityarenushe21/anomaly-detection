@@ -46,11 +46,15 @@ def process_stock(ticker):
 
         X = create_sequences(features)
 
-        errors, anomalies = detect_anomaly(X)
+        # 🔥 UPDATED CALL
+        errors, anomalies, labels = detect_anomaly(X)
 
         risk = calculate_risk(errors, data['volatility'].values)
 
-        return float(risk[-1])
+        # 🔥 FINAL LABEL (latest point)
+        final_label = labels[-1]
+
+        return float(risk[-1]), final_label
 
     except Exception as e:
         print(f"Error in {ticker}: {e}")
@@ -61,16 +65,17 @@ def analyze_stocks():
     results = {}
 
     for ticker in tickers:
-        risk = process_stock(ticker)
+        result = process_stock(ticker)
 
-        if risk is not None:
-            results[ticker] = risk
+        if result is not None:
+            risk, label = result
+            results[ticker] = (risk, label)
 
     return results
 
 
 def rank_stocks(results):
-    return sorted(results.items(), key=lambda x: x[1])
+    return sorted(results.items(), key=lambda x: x[1][0])
 
 
 if __name__ == "__main__":
@@ -78,13 +83,13 @@ if __name__ == "__main__":
     results = analyze_stocks()
 
     print("\n📊 Risk Scores:")
-    for stock, score in results.items():
-        print(f"{stock}: {score:.2f}")
+    for stock, (score, label) in results.items():
+        print(f"{stock}: {score:.2f} ({label})")
 
     ranking = rank_stocks(results)
 
     print("\n🏆 Ranking (Low → High Risk):")
-    for stock, score in ranking:
-        print(f"{stock}: {score:.2f}")
+    for stock, (score, label) in ranking:
+        print(f"{stock}: {score:.2f} ({label})")
 
     print(f"\n✅ Best Stock (Lowest Risk): {ranking[0][0]}")
