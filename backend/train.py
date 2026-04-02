@@ -1,4 +1,5 @@
 import torch
+import joblib
 from model import LSTMAutoencoder
 from data_loader import get_data
 from features import add_features
@@ -6,12 +7,21 @@ from prepare import create_sequences
 from sklearn.preprocessing import MinMaxScaler
 
 data = get_data("AAPL")
-data = add_features(data)
+if data.empty:
+    print("Error: No data fetched for AAPL. Check yfinance connectivity.")
+    exit(1)
 
-features = data[['Close','Volume','returns','volatility']].values
+data = add_features(data)
+if len(data) < 20:
+    print(f"Error: Too little data ({len(data)} rows) after feature engineering.")
+    exit(1)
+
+features_df = data[['Close','Volume','returns','volatility']]
+features = features_df.values
 
 scaler = MinMaxScaler()
 features = scaler.fit_transform(features)
+joblib.dump(scaler, "scaler.pkl")
 
 X = create_sequences(features)
 X_tensor = torch.tensor(X, dtype=torch.float32)
